@@ -1,15 +1,14 @@
 import React, { useState, useEffect, useContext } from "react";
 import Page from "./Page";
 import Axios from "axios";
-import { CSSTransition } from "react-transition-group";
-
 import { useImmerReducer } from "use-immer";
+import { CSSTransition } from "react-transition-group";
 import DispatchContext from "../DispatchContext";
 
 function HomeGuest() {
   const appDispatch = useContext(DispatchContext);
 
-  const InitialState = {
+  const initialState = {
     username: {
       value: "",
       hasErrors: false,
@@ -30,7 +29,6 @@ function HomeGuest() {
       message: "",
     },
     submitCount: 0,
-    formNoErrors: false,
   };
 
   function ourReducer(draft, action) {
@@ -40,7 +38,7 @@ function HomeGuest() {
         draft.username.value = action.value;
         if (draft.username.value.length > 30) {
           draft.username.hasErrors = true;
-          draft.username.message = "Username cannot exceed 30 characters";
+          draft.username.message = "Username cannot exceed 30 characters.";
         }
         if (
           draft.username.value &&
@@ -48,7 +46,7 @@ function HomeGuest() {
         ) {
           draft.username.hasErrors = true;
           draft.username.message =
-            "Username can only contain letters and numbers";
+            "Username can only contain letters and numbers.";
         }
         return;
       case "usernameAfterDelay":
@@ -56,7 +54,7 @@ function HomeGuest() {
           draft.username.hasErrors = true;
           draft.username.message = "Username must be at least 3 characters.";
         }
-        if (!draft.username.hasErrors && !action.noRequest) {
+        if (!draft.hasErrors && !action.noRequest) {
           draft.username.checkCount++;
         }
         return;
@@ -64,7 +62,7 @@ function HomeGuest() {
         if (action.value) {
           draft.username.hasErrors = true;
           draft.username.isUnique = false;
-          draft.username.message = "That username is already taken";
+          draft.username.message = "That username is already taken.";
         } else {
           draft.username.isUnique = true;
         }
@@ -72,16 +70,6 @@ function HomeGuest() {
       case "emailImmediately":
         draft.email.hasErrors = false;
         draft.email.value = action.value;
-        return;
-      case "emailUniqueResults":
-        if (action.value) {
-          draft.email.hasErrors = true;
-          draft.email.isUnique = false;
-          draft.email.message =
-            "That email already exist. Please choose another email.";
-        } else {
-          draft.email.isUnique = true;
-        }
         return;
       case "emailAfterDelay":
         if (!/^\S+@\S+$/.test(draft.email.value)) {
@@ -91,7 +79,15 @@ function HomeGuest() {
         if (!draft.email.hasErrors && !action.noRequest) {
           draft.email.checkCount++;
         }
-
+        return;
+      case "emailUniqueResults":
+        if (action.value) {
+          draft.email.hasErrors = true;
+          draft.email.isUnique = false;
+          draft.email.message = "That email is already being used.";
+        } else {
+          draft.email.isUnique = true;
+        }
         return;
       case "passwordImmediately":
         draft.password.hasErrors = false;
@@ -106,15 +102,6 @@ function HomeGuest() {
           draft.password.hasErrors = true;
           draft.password.message = "Password must be at least 12 characters.";
         }
-        if (
-          !draft.username.hasErrors &&
-          draft.username.isUnique &&
-          !draft.email.hasErrors &&
-          draft.email.isUnique &&
-          !draft.password.hasErrors
-        ) {
-          draft.formNoErrors = !draft.formNoErrors;
-        }
         return;
       case "submitForm":
         if (
@@ -127,12 +114,10 @@ function HomeGuest() {
           draft.submitCount++;
         }
         return;
-      case "noErrors":
-        draft.formNoErrors = true;
     }
   }
 
-  const [state, dispatch] = useImmerReducer(ourReducer, InitialState);
+  const [state, dispatch] = useImmerReducer(ourReducer, initialState);
 
   useEffect(() => {
     if (state.username.value) {
@@ -221,7 +206,7 @@ function HomeGuest() {
           appDispatch({ type: "login", data: response.data });
           appDispatch({
             type: "flashMessage",
-            value: "Congrats Welcome to your new account",
+            value: "Congrats! Welcome to your new account.",
           });
         } catch (e) {
           console.log("There was a problem or the request was cancelled.");
@@ -234,24 +219,20 @@ function HomeGuest() {
 
   function handleSubmit(e) {
     e.preventDefault();
-
     dispatch({ type: "usernameImmediately", value: state.username.value });
     dispatch({
       type: "usernameAfterDelay",
       value: state.username.value,
       noRequest: true,
     });
-
-    dispatch({ type: "passwordImmediately", value: state.password.value });
+    dispatch({ type: "emailImmediately", value: state.email.value });
     dispatch({
-      type: "passwordAfterDelay",
-      value: state.password.value,
+      type: "emailAfterDelay",
+      value: state.email.value,
       noRequest: true,
     });
-
-    dispatch({ type: "emailImmediately", value: state.email.value });
-    dispatch({ type: "emailAfterDelay", value: state.email.value });
-
+    dispatch({ type: "passwordImmediately", value: state.password.value });
+    dispatch({ type: "passwordAfterDelay", value: state.password.value });
     dispatch({ type: "submitForm" });
   }
 
@@ -293,7 +274,7 @@ function HomeGuest() {
                 classNames="liveValidateMessage"
                 unmountOnExit
               >
-                <div className="alert alert-danger small liveValidateMessage ">
+                <div className="alert alert-danger small liveValidateMessage">
                   {state.username.message}
                 </div>
               </CSSTransition>
@@ -319,7 +300,7 @@ function HomeGuest() {
                 classNames="liveValidateMessage"
                 unmountOnExit
               >
-                <div className="alert alert-danger small liveValidateMessage ">
+                <div className="alert alert-danger small liveValidateMessage">
                   {state.email.message}
                 </div>
               </CSSTransition>
@@ -347,26 +328,17 @@ function HomeGuest() {
                 classNames="liveValidateMessage"
                 unmountOnExit
               >
-                <div className="alert alert-danger small liveValidateMessage ">
+                <div className="alert alert-danger small liveValidateMessage">
                   {state.password.message}
                 </div>
               </CSSTransition>
             </div>
-            {state.formNoErrors ? (
-              <button
-                type="submit"
-                className="py-3 mt-4 btn btn-lg btn-success btn-block "
-              >
-                Sign up for ComplexApp
-              </button>
-            ) : (
-              <button
-                type="submit"
-                className="py-3 mt-4 btn btn-lg btn-outline-secondary btn-block disabled "
-              >
-                Sign up for ComplexApp
-              </button>
-            )}
+            <button
+              type="submit"
+              className="py-3 mt-4 btn btn-lg btn-success btn-block"
+            >
+              Sign up for ComplexApp
+            </button>
           </form>
         </div>
       </div>
