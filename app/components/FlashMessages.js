@@ -38,15 +38,6 @@ import {
   IconRow,
 } from "../../components/Form/radio-button/radio-button-styles";
 
-import Education from "../../assets/icons/education-cashified";
-import { ReactComponent as Emergencies } from "../../assets/icons/emergencies.svg";
-import { ReactComponent as HomeImprovements } from "../../assets/icons/home-improvements-cashified.svg";
-import { ReactComponent as Leisure } from "../../assets/icons/leisure-cashified.svg";
-import { ReactComponent as LifeEvents } from "../../assets/icons/life-events-cashified.svg";
-import { ReactComponent as Purchases } from "../../assets/icons/purchases-cashified.svg";
-import { ReactComponent as Travel } from "../../assets/icons/travel-cashified.svg";
-import { ReactComponent as Utilities } from "../../assets/icons/utilities-and-bills-cashified.svg";
-import { ReactComponent as VehicleRepairs } from "../../assets/icons/vehicle-repairs.svg";
 function FlashMessages(props) {
   return (
     <div className="floating-alerts">
