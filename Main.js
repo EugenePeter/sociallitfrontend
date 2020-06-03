@@ -1,30 +1,31 @@
-import React, { useState, useReducer, useEffect, Suspense } from "react"
-import ReactDOM from "react-dom"
-import { useImmerReducer } from "use-immer"
-import { BrowserRouter, Switch, Route } from "react-router-dom"
-import { CSSTransition } from "react-transition-group"
-import Axios from "axios"
-Axios.defaults.baseURL = process.env.BACKENDURL || "your heroku dot com goes here"
+import React, { useState, useReducer, useEffect, Suspense } from "react";
+import ReactDOM from "react-dom";
+import { useImmerReducer } from "use-immer";
+import { BrowserRouter, Switch, Route } from "react-router-dom";
+import { CSSTransition } from "react-transition-group";
+import Axios from "axios";
+Axios.defaults.baseURL =
+  process.env.BACKENDURL || "https://social-lit.herokuapp.com/";
 
-import StateContext from "./StateContext"
-import DispatchContext from "./DispatchContext"
+import StateContext from "./StateContext";
+import DispatchContext from "./DispatchContext";
 
 // My Components
-import LoadingDotsIcon from "./components/LoadingDotsIcon"
-import Header from "./components/Header"
-import HomeGuest from "./components/HomeGuest"
-import Home from "./components/Home"
-import Footer from "./components/Footer"
-import About from "./components/About"
-import Terms from "./components/Terms"
-const CreatePost = React.lazy(() => import("./components/CreatePost"))
-const ViewSinglePost = React.lazy(() => import("./components/ViewSinglePost"))
-const Search = React.lazy(() => import("./components/Search"))
-const Chat = React.lazy(() => import("./components/Chat"))
-import FlashMessages from "./components/FlashMessages"
-import Profile from "./components/Profile"
-import EditPost from "./components/EditPost"
-import NotFound from "./components/NotFound"
+import LoadingDotsIcon from "./components/LoadingDotsIcon";
+import Header from "./components/Header";
+import HomeGuest from "./components/HomeGuest";
+import Home from "./components/Home";
+import Footer from "./components/Footer";
+import About from "./components/About";
+import Terms from "./components/Terms";
+const CreatePost = React.lazy(() => import("./components/CreatePost"));
+const ViewSinglePost = React.lazy(() => import("./components/ViewSinglePost"));
+const Search = React.lazy(() => import("./components/Search"));
+const Chat = React.lazy(() => import("./components/Chat"));
+import FlashMessages from "./components/FlashMessages";
+import Profile from "./components/Profile";
+import EditPost from "./components/EditPost";
+import NotFound from "./components/NotFound";
 
 function Main() {
   const initialState = {
@@ -38,74 +39,81 @@ function Main() {
     isSearchOpen: false,
     isChatOpen: false,
     unreadChatCount: 0,
-  }
+  };
 
   function ourReducer(draft, action) {
     switch (action.type) {
       case "login":
-        draft.loggedIn = true
-        draft.user = action.data
-        return
+        draft.loggedIn = true;
+        draft.user = action.data;
+        return;
       case "logout":
-        draft.loggedIn = false
-        return
+        draft.loggedIn = false;
+        return;
       case "flashMessage":
-        draft.flashMessages.push(action.value)
-        return
+        draft.flashMessages.push(action.value);
+        return;
       case "openSearch":
-        draft.isSearchOpen = true
-        return
+        draft.isSearchOpen = true;
+        return;
       case "closeSearch":
-        draft.isSearchOpen = false
-        return
+        draft.isSearchOpen = false;
+        return;
       case "toggleChat":
-        draft.isChatOpen = !draft.isChatOpen
-        return
+        draft.isChatOpen = !draft.isChatOpen;
+        return;
       case "closeChat":
-        draft.isChatOpen = false
-        return
+        draft.isChatOpen = false;
+        return;
       case "incrementUnreadChatCount":
-        draft.unreadChatCount++
-        return
+        draft.unreadChatCount++;
+        return;
       case "clearUnreadChatCount":
-        draft.unreadChatCount = 0
-        return
+        draft.unreadChatCount = 0;
+        return;
     }
   }
 
-  const [state, dispatch] = useImmerReducer(ourReducer, initialState)
+  const [state, dispatch] = useImmerReducer(ourReducer, initialState);
 
   useEffect(() => {
     if (state.loggedIn) {
-      localStorage.setItem("complexappToken", state.user.token)
-      localStorage.setItem("complexappUsername", state.user.username)
-      localStorage.setItem("complexappAvatar", state.user.avatar)
+      localStorage.setItem("complexappToken", state.user.token);
+      localStorage.setItem("complexappUsername", state.user.username);
+      localStorage.setItem("complexappAvatar", state.user.avatar);
     } else {
-      localStorage.removeItem("complexappToken")
-      localStorage.removeItem("complexappUsername")
-      localStorage.removeItem("complexappAvatar")
+      localStorage.removeItem("complexappToken");
+      localStorage.removeItem("complexappUsername");
+      localStorage.removeItem("complexappAvatar");
     }
-  }, [state.loggedIn])
+  }, [state.loggedIn]);
 
   // Check if token has expired or not on first render
   useEffect(() => {
     if (state.loggedIn) {
-      const ourRequest = Axios.CancelToken.source()
+      const ourRequest = Axios.CancelToken.source();
       async function fetchResults() {
         try {
-          const response = await Axios.post("/checkToken", { token: state.user.token }, { cancelToken: ourRequest.token })
+          const response = await Axios.post(
+            "/checkToken",
+            { token: state.user.token },
+            { cancelToken: ourRequest.token }
+          );
           if (!response.data) {
-            dispatch({ type: "logout" })
-            dispatch({ type: "flashMessage", value: "Your session has expired. Please log in again." })
+            dispatch({ type: "logout" });
+            dispatch({
+              type: "flashMessage",
+              value: "Your session has expired. Please log in again.",
+            });
           }
         } catch (e) {
-          console.log("There was a problem or the request was cancelled.")
+          console.log("There was a problem or the request was cancelled.");
         }
       }
-      fetchResults()
-      return () => ourRequest.cancel()
+      fetchResults();
+      return () => ourRequest.cancel();
     }
-  }, [])
+  }, []);
 
   return (
     <StateContext.Provider value={state}>
@@ -141,7 +149,12 @@ function Main() {
               </Route>
             </Switch>
           </Suspense>
-          <CSSTransition timeout={330} in={state.isSearchOpen} classNames="search-overlay" unmountOnExit>
+          <CSSTransition
+            timeout={330}
+            in={state.isSearchOpen}
+            classNames="search-overlay"
+            unmountOnExit
+          >
             <div className="search-overlay">
               <Suspense fallback="">
                 <Search />
@@ -153,11 +166,11 @@ function Main() {
         </BrowserRouter>
       </DispatchContext.Provider>
     </StateContext.Provider>
-  )
+  );
 }
 
-ReactDOM.render(<Main />, document.querySelector("#app"))
+ReactDOM.render(<Main />, document.querySelector("#app"));
 
 if (module.hot) {
-  module.hot.accept()
+  module.hot.accept();
 }
